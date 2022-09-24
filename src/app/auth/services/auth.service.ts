@@ -18,6 +18,24 @@ export class AuthService {
 
   constructor(private http: HttpClient) { }
 
+  register(name: string, email: string, password: string) {
+    const url = `${this.baseUrl}/auth/new`;
+    const body = { name, email, password }
+    return this.http.post<AuthResponse>(url, body).pipe(
+      tap(response => {
+        if (response.ok) {
+          localStorage.setItem('token', response.token!);
+          this._user = {
+            name: response.name!,
+            uid: response.uid!,
+          }
+        }
+      }),
+      map(response => response.ok),
+      catchError(err => of(err.error.msg))
+    )
+  }
+
   login(email: string, password: string) {
     const url = `${this.baseUrl}/auth`;
     const body = { email, password }
@@ -37,9 +55,23 @@ export class AuthService {
     )
   }
 
-  validateToken() {
+  validateToken(): Observable<boolean> {
     const url = `${this.baseUrl}/auth/renew`;
     const headers = new HttpHeaders().set('x-token', localStorage.getItem('token') || '')
-    this.http.get(url, { headers });
+    return this.http.get<AuthResponse>(url, { headers }).pipe(
+      map(response => {
+        localStorage.setItem('token', response.token!);
+        this._user = {
+          name: response.name!,
+          uid: response.uid!,
+        }
+        return response.ok
+      }),
+      catchError(err => of(false))
+    );
+  }
+
+  logout() {
+    localStorage.removeItem('token');
   }
 }
