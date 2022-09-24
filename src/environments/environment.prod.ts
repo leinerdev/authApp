@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  baseUrl: 'https://lei-mean-auth.herokuapp.com//api'
+  baseUrl: 'https://lei-mean-auth.herokuapp.com/api'
 };
